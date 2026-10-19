@@ -16,7 +16,7 @@
                 <input type="password" id="loginPassword" placeholder="Password" required>
                 <button type="submit">Login</button>
             </form>
-            <p>Don't have an account? <a href="#" onclick="showSignup()">Sign up</a></p>
+            <p>Don't have an account? <a onclick="showSignup()">Sign up</a></p>
         </div>
     </div>
 
@@ -29,17 +29,15 @@
                 <input type="password" id="signupPassword" placeholder="Password" required>
                 <button type="submit">Sign Up</button>
             </form>
-            <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+            <p>Already have an account? <a onclick="showLogin()">Login</a></p>
         </div>
     </div>
 
     <!-- Dashboard Page -->
     <div id="dashboardPage" class="page hidden">
         <div class="container">
-            <div class="header">
-                <h1>Dashboard</h1>
-                <button onclick="logout()" class="btn-logout">Logout</button>
-            </div>
+            <h1>Dashboard</h1>
+            <button onclick="logout()" class="btn-logout">Logout</button>
             <button onclick="showAddSubject()" class="btn-primary">+ Add Subject</button>
             <div id="subjectsList"></div>
         </div>
@@ -75,14 +73,14 @@
             <button onclick="backToSubject()" class="btn-back">← Back</button>
             <form id="uploadForm">
                 <label>Question Bank (.docx)</label>
-                <input type="file" id="qbankFile" accept=".docx" multiple required>
+                <input type="file" id="qbankFile" accept=".docx" required>
                 
                 <label>Notes (.pdf)</label>
                 <input type="file" id="notesFile" accept=".pdf" multiple>
                 
-                <button type="submit" id="uploadBtn">Upload & Generate</button>
+                <button type="submit">Upload & Generate</button>
                 <div id="uploadProgress" class="progress hidden">
-                    <p>Processing... <span id="progressText"></span></p>
+                    <p>Processing...</p>
                 </div>
             </form>
         </div>
