@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QBank Answer Generator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage" class="page">
+        <div class="container">
+            <h1>QBank Answer Generator</h1>
+            <form id="loginForm">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+            <p>Don't have an account? <a href="#" onclick="showSignup()">Sign up</a></p>
+        </div>
+    </div>
+
+    <!-- Signup Page -->
+    <div id="signupPage" class="page hidden">
+        <div class="container">
+            <h1>Create Account</h1>
+            <form id="signupForm">
+                <input type="email" id="signupEmail" placeholder="Email" required>
+                <input type="password" id="signupPassword" placeholder="Password" required>
+                <button type="submit">Sign Up</button>
+            </form>
+            <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+        </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboardPage" class="page hidden">
+        <div class="container">
+            <div class="header">
+                <h1>Dashboard</h1>
+                <button onclick="logout()" class="btn-logout">Logout</button>
+            </div>
+            <button onclick="showAddSubject()" class="btn-primary">+ Add Subject</button>
+            <div id="subjectsList"></div>
+        </div>
+    </div>
+
+    <!-- Add Subject Page -->
+    <div id="addSubjectPage" class="page hidden">
+        <div class="container">
+            <h1>Add Subject</h1>
+            <button onclick="backToDashboard()" class="btn-back">← Back</button>
+            <form id="addSubjectForm">
+                <input type="text" id="subjectName" placeholder="Subject Name" required>
+                <button type="submit">Create Subject</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Subject Detail Page -->
+    <div id="subjectDetailPage" class="page hidden">
+        <div class="container">
+            <h1 id="subjectTitle"></h1>
+            <button onclick="backToDashboard()" class="btn-back">← Back</button>
+            <button onclick="showUpload()" class="btn-primary">📤 Upload Files</button>
+            <button onclick="downloadPDF()" class="btn-secondary">📥 Download PDF</button>
+            <div id="qaList"></div>
+        </div>
+    </div>
+
+    <!-- Upload Page -->
+    <div id="uploadPage" class="page hidden">
+        <div class="container">
+            <h1>Upload Files</h1>
+            <button onclick="backToSubject()" class="btn-back">← Back</button>
+            <form id="uploadForm">
+                <label>Question Bank (.docx)</label>
+                <input type="file" id="qbankFile" accept=".docx" multiple required>
+                
+                <label>Notes (.pdf)</label>
+                <input type="file" id="notesFile" accept=".pdf" multiple>
+                
+                <button type="submit" id="uploadBtn">Upload & Generate</button>
+                <div id="uploadProgress" class="progress hidden">
+                    <p>Processing... <span id="progressText"></span></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
