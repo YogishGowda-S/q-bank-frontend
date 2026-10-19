@@ -1,5 +1,5 @@
 // Change this to your Render backend URL
-const API_URL = "http://localhost:5000";  // For local testing
+const API_URL = "https://q-bank-backend.onrender.com";  // For local testing
 // For production: const API_URL = "https://your-render-app.onrender.com";
 
 let currentUserId = null;
