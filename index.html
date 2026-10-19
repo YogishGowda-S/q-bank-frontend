@@ -1,86 +1,329 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>QBank</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QBank Answer Generator</title>
     <style>
-        * { margin: 0; padding: 0; }
-        body { font-family: Arial; }
-        .page { display: none; padding: 20px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; margin-bottom: 20px; }
+        form { display: flex; flex-direction: column; gap: 10px; }
+        input, textarea, select { padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 5px rgba(102,126,234,0.3); }
+        button { padding: 12px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        button:hover { background: #5568d3; }
+        a { color: #667eea; text-decoration: none; cursor: pointer; }
+        a:hover { text-decoration: underline; }
+        p { margin-top: 15px; text-align: center; }
+        .page { display: none; }
         .page.active { display: block; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 5px; }
-        h1 { margin-bottom: 20px; }
-        input { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 3px; }
-        button { width: 100%; padding: 10px; margin: 10px 0; background: #667eea; color: white; border: none; border-radius: 3px; cursor: pointer; }
-        a { color: #667eea; cursor: pointer; }
+        .qa-item { background: #f9f9f9; padding: 15px; margin: 10px 0; border-left: 4px solid #667eea; border-radius: 4px; }
+        .qa-item h4 { color: #333; margin-bottom: 10px; }
+        .qa-item p { text-align: left; margin: 5px 0; color: #666; }
+        .subject-item { padding: 15px; background: #f0f0f0; margin: 10px 0; border-radius: 4px; cursor: pointer; }
+        .subject-item:hover { background: #e0e0e0; }
+        .btn-logout { background: #f56565; margin-bottom: 15px; }
+        .btn-logout:hover { background: #e53e3e; }
+        .btn-back { background: #a0aec0; margin-bottom: 15px; }
+        .btn-back:hover { background: #718096; }
+        label { display: block; margin-top: 10px; font-weight: bold; color: #333; }
+        .progress { background: #e6ffed; padding: 15px; border-radius: 4px; margin-top: 15px; color: #22543d; display: none; }
+        .progress.show { display: block; }
     </style>
 </head>
 <body>
 
+<!-- LOGIN PAGE -->
 <div id="loginPage" class="page active">
     <div class="container">
         <h1>QBank Answer Generator</h1>
+        <h2>Login</h2>
         <form id="loginForm">
             <input type="email" id="loginEmail" placeholder="Email" required>
             <input type="password" id="loginPassword" placeholder="Password" required>
             <button type="submit">Login</button>
         </form>
-        <p>Don't have account? <a onclick="showPage('signupPage')">Sign up</a></p>
+        <p>No account? <a onclick="goToSignup()">Sign up here</a></p>
     </div>
 </div>
 
+<!-- SIGNUP PAGE -->
 <div id="signupPage" class="page">
     <div class="container">
-        <h1>Create Account</h1>
+        <h1>QBank Answer Generator</h1>
+        <h2>Create Account</h2>
         <form id="signupForm">
             <input type="email" id="signupEmail" placeholder="Email" required>
             <input type="password" id="signupPassword" placeholder="Password" required>
             <button type="submit">Sign Up</button>
         </form>
-        <p><a onclick="showPage('loginPage')">Back to Login</a></p>
+        <p>Already have an account? <a onclick="goToLogin()">Login here</a></p>
     </div>
 </div>
 
+<!-- DASHBOARD PAGE -->
 <div id="dashboardPage" class="page">
     <div class="container">
-        <h1>Dashboard</h1>
-        <button onclick="logout()">Logout</button>
-        <button onclick="showPage('addSubjectPage')">+ Add Subject</button>
-        <div id="subjectsList"></div>
+        <h2>Dashboard</h2>
+        <button class="btn-logout" onclick="logout()">Logout</button>
+        <button onclick="goToAddSubject()">+ Add Subject</button>
+        <div id="subjectsList" style="margin-top: 20px;"></div>
     </div>
 </div>
 
+<!-- ADD SUBJECT PAGE -->
 <div id="addSubjectPage" class="page">
     <div class="container">
-        <h1>Add Subject</h1>
+        <h2>Add Subject</h2>
+        <button class="btn-back" onclick="goToDashboard()">← Back to Dashboard</button>
         <form id="addSubjectForm">
             <input type="text" id="subjectName" placeholder="Subject Name" required>
-            <button type="submit">Create</button>
+            <button type="submit">Create Subject</button>
         </form>
-        <p><a onclick="showPage('dashboardPage')">Back</a></p>
     </div>
 </div>
 
-<div id="subjectDetailPage" class="page">
+<!-- SUBJECT DETAIL PAGE -->
+<div id="subjectPage" class="page">
     <div class="container">
-        <h1 id="subjectTitle"></h1>
-        <button onclick="showPage('dashboardPage')">Back</button>
-        <button onclick="showPage('uploadPage')">Upload Files</button>
-        <div id="qaList"></div>
+        <h2 id="subjectTitle"></h2>
+        <button class="btn-back" onclick="goToDashboard()">← Back to Dashboard</button>
+        <button onclick="goToUpload()">📤 Upload Files & Generate</button>
+        <button onclick="downloadPDF()">📥 Download PDF</button>
+        <div id="qaList" style="margin-top: 20px;"></div>
     </div>
 </div>
 
+<!-- UPLOAD PAGE -->
 <div id="uploadPage" class="page">
     <div class="container">
-        <h1>Upload Files</h1>
+        <h2>Upload Files</h2>
+        <button class="btn-back" onclick="goToSubject()">← Back</button>
         <form id="uploadForm">
+            <label>Question Bank (.docx)</label>
             <input type="file" id="qbankFile" accept=".docx" required>
+            
+            <label>Notes (.pdf) - Optional</label>
             <input type="file" id="notesFile" accept=".pdf" multiple>
+            
             <button type="submit">Upload & Generate</button>
+            <div id="uploadProgress" class="progress">
+                <p>Processing... Please wait</p>
+            </div>
         </form>
-        <p><a onclick="showPage('subjectDetailPage')">Back</a></p>
     </div>
 </div>
 
-<script src="script.js"></script>
+<script>
+const API_URL = "https://q-bank-backend.onrender.com";
+let currentUserId = null;
+let currentSubjectId = null;
+
+// PAGE NAVIGATION
+function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+}
+
+function goToLogin() { showPage('loginPage'); }
+function goToSignup() { showPage('signupPage'); }
+function goToDashboard() { showPage('dashboardPage'); loadSubjects(); }
+function goToAddSubject() { showPage('addSubjectPage'); }
+function goToSubject() { showPage('subjectPage'); loadSubjectDetail(); }
+function goToUpload() { showPage('uploadPage'); }
+
+// LOGIN
+document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+
+    try {
+        const res = await fetch(`${API_URL}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            currentUserId = data.user_id;
+            localStorage.setItem('userId', currentUserId);
+            goToDashboard();
+        } else {
+            alert(data.error || 'Login failed');
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+});
+
+// SIGNUP
+document.getElementById('signupForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+
+    try {
+        const res = await fetch(`${API_URL}/api/signup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            alert('Signup successful! Login now.');
+            goToLogin();
+        } else {
+            alert(data.error || 'Signup failed');
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+});
+
+// LOAD SUBJECTS
+async function loadSubjects() {
+    try {
+        const res = await fetch(`${API_URL}/api/subjects?user_id=${currentUserId}`);
+        const data = await res.json();
+        let html = '';
+        if (data.subjects && data.subjects.length > 0) {
+            data.subjects.forEach(s => {
+                html += `<div class="subject-item" onclick="selectSubject(${s.id})">${s.name}</div>`;
+            });
+        } else {
+            html = '<p>No subjects yet. Create one!</p>';
+        }
+        document.getElementById('subjectsList').innerHTML = html;
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+// SELECT SUBJECT
+function selectSubject(id) {
+    currentSubjectId = id;
+    goToSubject();
+}
+
+// LOAD SUBJECT DETAIL
+async function loadSubjectDetail() {
+    try {
+        const res = await fetch(`${API_URL}/api/subjects/${currentSubjectId}`);
+        const data = await res.json();
+        document.getElementById('subjectTitle').innerText = data.subject.name;
+        
+        let html = '';
+        if (data.qa_pairs && data.qa_pairs.length > 0) {
+            data.qa_pairs.forEach((item, i) => {
+                html += `
+                    <div class="qa-item">
+                        <h4>Q${i+1}: ${item.question_text.substring(0, 80)}...</h4>
+                        <p><strong>Marks:</strong> ${item.marks || 10}</p>
+                        <p><strong>Answer:</strong> ${item.answer_text || 'Not generated yet'}</p>
+                    </div>
+                `;
+            });
+        } else {
+            html = '<p>No Q&A yet. Upload files to generate answers.</p>';
+        }
+        document.getElementById('qaList').innerHTML = html;
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+// ADD SUBJECT
+document.getElementById('addSubjectForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('subjectName').value;
+
+    try {
+        const res = await fetch(`${API_URL}/api/subjects`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: currentUserId, name })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            alert('Subject created!');
+            goToDashboard();
+        } else {
+            alert(data.error || 'Failed');
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+});
+
+// UPLOAD FILES
+document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    
+    const qbankFile = document.getElementById('qbankFile').files[0];
+    if (qbankFile) formData.append('qbank', qbankFile);
+    
+    const notesFiles = document.getElementById('notesFile').files;
+    for (let file of notesFiles) {
+        formData.append('notes', file);
+    }
+
+    document.getElementById('uploadProgress').classList.add('show');
+
+    try {
+        const res = await fetch(`${API_URL}/api/upload/${currentSubjectId}`, {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        document.getElementById('uploadProgress').classList.remove('show');
+        
+        if (res.ok) {
+            alert(`Generated ${data.count} answers!`);
+            goToSubject();
+        } else {
+            alert(data.error || 'Upload failed');
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
+        document.getElementById('uploadProgress').classList.remove('show');
+    }
+});
+
+// DOWNLOAD PDF
+async function downloadPDF() {
+    try {
+        const res = await fetch(`${API_URL}/api/download/${currentSubjectId}`);
+        if (res.ok) {
+            alert('PDF download feature coming soon');
+        } else {
+            alert('No data to download');
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+// LOGOUT
+function logout() {
+    localStorage.removeItem('userId');
+    currentUserId = null;
+    goToLogin();
+}
+
+// ON LOAD
+window.addEventListener('load', () => {
+    currentUserId = localStorage.getItem('userId');
+    if (currentUserId) {
+        goToDashboard();
+    } else {
+        goToLogin();
+    }
+});
+</script>
+
 </body>
 </html>
