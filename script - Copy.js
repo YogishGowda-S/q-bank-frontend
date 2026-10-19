@@ -1,6 +1,4 @@
-// Change this to your Render backend URL
-const API_URL = "https://q-bank-backend.onrender.com";  // For local testing
-// For production: const API_URL = "https://your-render-app.onrender.com";
+const API_URL = "https://q-bank-backend.onrender.com";
 
 let currentUserId = null;
 let currentSubjectId = null;
@@ -11,23 +9,45 @@ function showPage(pageId) {
     document.getElementById(pageId).classList.remove('hidden');
 }
 
-function showLogin() {
-    showPage('loginPage');
-}
+// On page load
+window.addEventListener('load', () => {
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+        currentUserId = userId;
+        showPage('dashboardPage');
+        loadSubjects();
+    } else {
+        showPage('loginPage');
+    }
+});
 
-function showSignup() {
-    showPage('signupPage');
-}
+// Login
+document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
 
-function showDashboard() {
-    showPage('dashboardPage');
-    loadSubjects();
-}
+    try {
+        const response = await fetch(`${API_URL}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
 
-function showAddSubject() {
-    showPage('addSubjectPage');
-}
-
+        const data = await response.json();
+        
+        if (response.ok) {
+            currentUserId = data.user_id;
+            localStorage.setItem('userId', currentUserId);
+            showPage('dashboardPage');
+            loadSubjects();
+        } else {
+            alert(data.error || 'Login failed');
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
 function showUpload() {
     currentSubjectId = localStorage.getItem('currentSubjectId');
     showPage('uploadPage');
