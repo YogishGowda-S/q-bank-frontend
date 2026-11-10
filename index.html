@@ -120,12 +120,13 @@ input[type=text], input[type=email], input[type=password], select, input[type=fi
   <div class="container"><div class="card">
     <h2>Upload files</h2>
     <form id="uploadForm">
-      <label for="qbankFile">Question bank (.docx)</label>
-      <input type="file" id="qbankFile" required
-             accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+      <label for="qbankFile">Question bank (Word or PDF) - you can pick several</label>
+      <input type="file" id="qbankFile" required multiple
+             accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
 
-      <label for="notesFile">Notes (.pdf) - you can pick several</label>
-      <input type="file" id="notesFile" multiple accept=".pdf,application/pdf">
+      <label for="notesFile">Notes (Word or PDF) - you can pick several</label>
+      <input type="file" id="notesFile" multiple
+             accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
 
       <label for="defaultMarks">Marks to use when a question does not mention marks</label>
       <select id="defaultMarks">
@@ -221,6 +222,13 @@ const postJSON = (path, body, retries) =>
       retries === undefined ? 2 : retries);
 
 // ───────── PDF reading (done in the browser so the free server is not overloaded) ─────────
+function pdfReady() {
+  if (!window.pdfjsLib) return false;
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  return true;
+}
+
 async function extractPdfText(file, onPage) {
   const buf = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
@@ -249,9 +257,7 @@ async function uploadNotesFile(file, index, total) {
   const label = "Reading notes " + (index + 1) + " of " + total + ": " + file.name;
   const reset = index === 0;
   setStatus("uploadStatus", label);
-  if (window.pdfjsLib) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  if (/\.pdf$/i.test(file.name) && pdfReady()) {
     const text = await extractPdfText(file, (p, n) =>
       setStatus("uploadStatus", label + " (page " + p + " of " + n + ")"));
     setStatus("uploadStatus", label + " - saving...");
@@ -377,7 +383,17 @@ $("uploadForm").addEventListener("submit", async (e) => {
   try {
     setStatus("uploadStatus", "Reading the question bank...");
     const fd = new FormData();
-    for (const f of qfiles) fd.append("qbank", f);
+    for (let i = 0; i < qfiles.length; i++) {
+      const f = qfiles[i];
+      if (/\.pdf$/i.test(f.name) && pdfReady()) {
+        const text = await extractPdfText(f, (p, n) =>
+          setStatus("uploadStatus", "Reading question bank " + (i + 1) + " of " + qfiles.length +
+                    ": " + f.name + " (page " + p + " of " + n + ")"));
+        fd.append("pdf_text", text);
+      } else {
+        fd.append("qbank", f);
+      }
+    }
     fd.append("default_marks", $("defaultMarks").value);
     const result = await api("/api/subjects/" + state.subjectId + "/questions", { method: "POST", body: fd });
 
