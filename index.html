@@ -141,6 +141,7 @@ input[type=text], input[type=email], input[type=password], select, input[type=fi
   </div></div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 const API_URL = "https://q-bank-backend.onrender.com";
 
@@ -215,8 +216,56 @@ async function api(path, options = {}, retries = 2) {
   }
 }
 
-const postJSON = (path, body) =>
-  api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+const postJSON = (path, body, retries) =>
+  api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) },
+      retries === undefined ? 2 : retries);
+
+// ───────── PDF reading (done in the browser so the free server is not overloaded) ─────────
+async function extractPdfText(file, onPage) {
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  const total = Math.min(pdf.numPages, 150);
+  const pages = [];
+  for (let p = 1; p <= total; p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    const lines = [];
+    let line = "", lastY = null;
+    for (const item of content.items) {
+      const y = item.transform ? item.transform[5] : null;
+      if (lastY !== null && y !== null && Math.abs(y - lastY) > 2) { lines.push(line); line = ""; }
+      line += item.str + " ";
+      if (y !== null) lastY = y;
+    }
+    lines.push(line);
+    pages.push(lines.join("\n"));
+    page.cleanup();
+    if (onPage) onPage(p, total);
+  }
+  return pages.join("\n\n");
+}
+
+async function uploadNotesFile(file, index, total) {
+  const label = "Reading notes " + (index + 1) + " of " + total + ": " + file.name;
+  const reset = index === 0;
+  setStatus("uploadStatus", label);
+  if (window.pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    const text = await extractPdfText(file, (p, n) =>
+      setStatus("uploadStatus", label + " (page " + p + " of " + n + ")"));
+    setStatus("uploadStatus", label + " - saving...");
+    const r = await postJSON("/api/subjects/" + state.subjectId + "/notes_text",
+                             { source: file.name, text: text, reset: reset }, 1);
+    return r.chars;
+  }
+  // Fallback: let the server read the PDF
+  const nfd = new FormData();
+  nfd.append("notes", file);
+  nfd.append("reset", reset ? "true" : "false");
+  const r = await api("/api/subjects/" + state.subjectId + "/notes", { method: "POST", body: nfd }, 0);
+  return r.chars;
+}
 
 // ───────── auth ─────────
 $("loginForm").addEventListener("submit", async (e) => {
@@ -334,12 +383,8 @@ $("uploadForm").addEventListener("submit", async (e) => {
 
     const warnings = [];
     for (let i = 0; i < nfiles.length; i++) {
-      setStatus("uploadStatus", "Reading notes " + (i + 1) + " of " + nfiles.length + ": " + nfiles[i].name);
-      const nfd = new FormData();
-      nfd.append("notes", nfiles[i]);
-      nfd.append("reset", i === 0 ? "true" : "false");
-      const r = await api("/api/subjects/" + state.subjectId + "/notes", { method: "POST", body: nfd });
-      if (!r.chars) warnings.push(nfiles[i].name);
+      const chars = await uploadNotesFile(nfiles[i], i, nfiles.length);
+      if (!chars) warnings.push(nfiles[i].name);
     }
     if (warnings.length) {
       alert("No readable text found in: " + warnings.join(", ") + ". Scanned PDFs (images) cannot be read.");
